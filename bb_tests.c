@@ -19,6 +19,8 @@ int test_BB_from_uint64_t(){
     if(strcmp(string, 
     "0000000000000001000000100000001100000100000001010000011000000111") != 0){
         LOG_ERR("Wrong output from BB_from_uint64_t");
+        BB_free(vector);
+        free(string);
         return 1;
     }
     BB_free(vector);
@@ -30,13 +32,13 @@ int test_shifts(){
     //test simple shift n < 8;
     big_bool *vec1 = BB_from_string("111000111000");
     
-    int count = 0;
+    int num_error = 0;
 
     big_bool *rsh = BB_right_shift(vec1, 3);
     char *strrsh = string_from_BB(rsh);
     if(strcmp(strrsh, "000111000111")){
-        count++;
-        LOG_ERR("Wrong output from BB_right_shift (output != 000111000111)");
+        num_error++;
+        LOG_ERR("Wrong output from BB_right_shift (111000111000 >> 3 != 000111000111)");
     }
     BB_free(rsh);
     free(strrsh);
@@ -44,8 +46,8 @@ int test_shifts(){
     big_bool *lsh = BB_left_shift(vec1, 5);
     char *strlsh = string_from_BB(lsh);
     if(strcmp(strlsh, "011100000000")){
-        count++;
-        LOG_ERR("Wrong output from BB_left_shift (output != 011100000000)");
+        num_error++;
+        LOG_ERR("Wrong output from BB_left_shift (111000111000 << 5 != 011100000000)");
     }
     BB_free(lsh);
     free(strlsh);
@@ -53,8 +55,8 @@ int test_shifts(){
     big_bool *rcsh = BB_cyclic_right_shift(vec1, 8);
     char *strrcsh = string_from_BB(rcsh);
     if(strcmp(strrcsh, "001110001110")){
-        count++;
-        LOG_ERR("Wrong output from BB_cyclic_right_shift (output != 001110001110)");
+        num_error++;
+        LOG_ERR("Wrong output from BB_cyclic_right_shift (111000111000 >> 8 != 001110001110)");
     }
     BB_free(rcsh);
     free(strrcsh);
@@ -62,15 +64,15 @@ int test_shifts(){
     big_bool *lcsh = BB_cyclic_left_shift(vec1, 11);
     char *strlcsh = string_from_BB(lcsh);
     if(strcmp(strlcsh, "011100011100")){
-        count++;
-        LOG_ERR("Wrong output from BB_cyclic_left_shift (output != 011100011100)");
+        num_error++;
+        LOG_ERR("Wrong output from BB_cyclic_left_shift (111000111000 << 11 != 011100011100)");
     }
     BB_free(lcsh);
     free(strlcsh);
 
     BB_free(vec1);
 
-    return count;
+    return num_error;
 }
 
 int test_logic_functions(){
@@ -83,7 +85,7 @@ int test_logic_functions(){
     big_bool *inv = BB_inverting(vec1);
     BB_free(vec1);
     BB_free(vec2);
-    int count = 0;
+    int num_error = 0;
 
     char *strcon = string_from_BB(con);
     BB_free(con);
@@ -95,19 +97,19 @@ int test_logic_functions(){
     BB_free(inv);
 
     if(strcmp(strcon, "000000110000")){
-        count++;
+        num_error++;
         LOG_ERR("Wrong output from BB_conjunction (con != 000000110000)");
     }
     if(strcmp(strdis, "111000111011")){
-        count++;
+        num_error++;
         LOG_ERR("Wrong output from BB_disjunction (dis != 111000111011)");
     }
     if(strcmp(strxor, "111000001011")){
-        count++;
+        num_error++;
         LOG_ERR("Wrong output from BB_xor (xor != 111000001011)");
     }
     if(strcmp(strinv, "000111000111")){
-        count++;
+        num_error++;
         LOG_ERR("Wrong output from BB_inverting (inv != 000111000111)");
     }
 
@@ -116,27 +118,27 @@ int test_logic_functions(){
     free(strxor);
     free(strinv);
 
-    return count;
+    return num_error;
 }
 
 int test_conversion(){
-    int count = 0;
+    int num_error = 0;
 
     big_bool *vector = BB_from_string("10101010");
     
     char *str = string_from_BB(vector);
     if(strcmp(str, "10101010")){
-        count++;
+        num_error++;
         LOG_ERR("Wrong output from BB_from_string (vector != 10101010)");
     }
     BB_free(vector);
     free(str);
 
-    return count;
+    return num_error;
 }
 
 int test_special_cases(){
-    int count = 0;
+    int num_error = 0;
     
     srand(time(NULL));
 
@@ -155,11 +157,11 @@ int test_special_cases(){
     BB_free(rsh);
 
     if(strcmp(strlsh, "0000000000000000000000000000000000000000000000000000000000000000")){
-        count++;
+        num_error++;
         LOG_ERR("Wrong output from BB_left_shift if num = LenOfVec");
     }
     if(strcmp(strrsh, "0000000000000000000000000000000000000000000000000000000000000000")){
-        count++;
+        num_error++;
         LOG_ERR("Wrong output from BB_right_shift if num = LenOfVec");
     }
 
@@ -171,7 +173,7 @@ int test_special_cases(){
     char *strlcsh = string_from_BB(lcsh);
     char *strvec1 = string_from_BB(vec1);
     if(strcmp(strlcsh, strvec1)){
-        count++;
+        num_error++;
         LOG_ERR("Wrong output from BB_cyclic_left_shift ((uint64_t)vector cyclic shift 64 != vector)")
     }
     big_bool *rcsh = BB_cyclic_right_shift(vec2, num);
@@ -179,7 +181,7 @@ int test_special_cases(){
     char *strrcsh = string_from_BB(rcsh);
     char *strvec2 = string_from_BB(vec2);
     if(strcmp(strrcsh, strvec2)){
-        count++;
+        num_error++;
         LOG_ERR("Wrong output from BB_cyclic_right_shift ((uint64_t)vector cyclic shift 64 != vector)")
     }
 
@@ -195,19 +197,19 @@ int test_special_cases(){
 
     //NULL cases
     
-    if(-1 != BB_lenght(NULL))count++;
-    if(NULL != BB_right_shift(NULL, 3))count++;
-    if(NULL != BB_left_shift(NULL, 3))count++;
-    if(NULL != BB_cyclic_left_shift(NULL, 0))count++;
-    if(NULL != BB_cyclic_right_shift(NULL, 0))count++;
-    if(NULL != BB_conjunction(NULL, NULL))count++;
-    if(NULL != BB_disjunction(NULL, NULL))count++;
-    if(NULL != BB_xor(NULL, NULL))count++;
-    if(NULL != BB_inverting(NULL))count++;
-    if(NULL != BB_from_string(NULL))count++;
-    if(NULL != string_from_BB(NULL))count++;
-    if(NULL != BB_from_string("abcd"))count++;
-    return count;
+    if(-1 != BB_lenght(NULL))num_error++;
+    if(NULL != BB_right_shift(NULL, 3))num_error++;
+    if(NULL != BB_left_shift(NULL, 3))num_error++;
+    if(NULL != BB_cyclic_left_shift(NULL, 0))num_error++;
+    if(NULL != BB_cyclic_right_shift(NULL, 0))num_error++;
+    if(NULL != BB_conjunction(NULL, NULL))num_error++;
+    if(NULL != BB_disjunction(NULL, NULL))num_error++;
+    if(NULL != BB_xor(NULL, NULL))num_error++;
+    if(NULL != BB_inverting(NULL))num_error++;
+    if(NULL != BB_from_string(NULL))num_error++;
+    if(NULL != string_from_BB(NULL))num_error++;
+    if(NULL != BB_from_string("abcd"))num_error++;
+    return num_error;
 }
 
 big_bool *make_random_vec(){
@@ -221,7 +223,7 @@ big_bool *make_random_vec(){
 }
 
 int test_edentities(){
-    int count = 0;
+    int num_error = 0;
 
     srand(time(NULL));
 
@@ -234,7 +236,7 @@ int test_edentities(){
     char *strdinv3 = string_from_BB(inv3);
 
     if(strcmp(strdinv1, strdinv3)){
-        count++;
+        num_error++;
         LOG_ERR("Double invertion doesn't work");
     }
 
@@ -258,7 +260,7 @@ int test_edentities(){
     string[BB_lenght(inv4)] = '\x00';
 
     if(strcmp(strconinv, string)){
-        count++;
+        num_error++;
         LOG_ERR("Negation doesn't work");
     }
 
@@ -279,7 +281,7 @@ int test_edentities(){
     }
     one_string[BB_lenght(a)] = '\x00';
     if(strcmp(str_a_dis_not_a, one_string)){
-        count++;
+        num_error++;
         LOG_ERR("Third wheel doesn't work");
     }
     BB_free(a);
@@ -319,7 +321,7 @@ int test_edentities(){
     char *str_right = string_from_BB(not_c_dis_not_d);
 
     if(strcmp(str_left, str_right)){
-        count++;
+        num_error++;
         LOG_ERR("De Morgan doesn't work");
     }
 
@@ -351,7 +353,7 @@ int test_edentities(){
     char *str_second = string_from_BB(not_x_con_not_y);
 
     if(strcmp(str_thirst, str_second)){
-        count++;
+        num_error++;
         LOG_ERR("De Morgan doesn't work");
     }
 
@@ -400,22 +402,22 @@ int test_edentities(){
     BB_free(f_xor_g);
     BB_free(con_dis_con);
     if(strcmp(str_f_xor_g, str_con_dis_con)){
-        count++;
+        num_error++;
         LOG_ERR("XOR doesn't work");
     }
     free(str_f_xor_g);
     free(str_con_dis_con);
 
-    return count;
+    return num_error;
 }
 int main(){
-    int count = 0;
+    int num_error = 0;
 
-    count += test_BB_from_uint64_t();
-    count += test_shifts();
-    count += test_logic_functions();
-    count += test_conversion();
-    count += test_special_cases();
+    num_error += test_BB_from_uint64_t();
+    num_error += test_shifts();
+    num_error += test_logic_functions();
+    num_error += test_conversion();
+    num_error += test_special_cases();
 
     printf("Do you want to begin test with random cases? 1 - yes, 0 - no\n");
     char symbol = getc(stdin);
@@ -424,15 +426,15 @@ int main(){
         int number;
         scanf("%d", &number);
         if(number <= 0){
-            printf("Wrong input\n");
-            
-        }
-        for(int i = 0; i < number; i++){
-            count += test_edentities();
+            printf("Wrong input, try to type number > 0 next time \n");
+        } else {
+            for (int i = 0; i < number; i++) {
+                num_error += test_edentities();
+            }
         }
     }
-    if (count>0){
-		printf ("Number of failed tests: %d\n", count);
+    if (num_error>0){
+		printf ("Number of failed tests: %d\n", num_error);
 		return 0;
 	} else {
 	puts (GREEN"[OK] All is ok!"RESET);
