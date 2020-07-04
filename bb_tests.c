@@ -195,7 +195,7 @@ int test_special_cases(){
     free(strrcsh);
     free(strvec2);
 
-    //NULL cases
+    //NULL cases and ERROR outputs
     
     if(-1 != BB_lenght(NULL))num_error++;
     if(NULL != BB_right_shift(NULL, 3))num_error++;

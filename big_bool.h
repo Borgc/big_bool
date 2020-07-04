@@ -14,6 +14,24 @@ struct big_bool{
     int last_byte;
 };
 
+#define ERR_OK 0
+#define ERR_MEM_NOT_ALLOC 1
+#define ERR_WRONG_CHARS 2
+#define ERR_NULL_INPUT 3
+#define ERR_SHIFT_EQUAL_OR_LESS_ZERO 4
+
+/*ERRORS:
+ * ERR_OK (bb_errno set 0)means program didn't get any of following errors:
+ * ERR_MEM_NOT_ALLOC means in function didn't work calloc or malloc function.
+ * bb_errno set 1
+ * ERR_WRONG_CHARS means your input contains any chars besides "1" and "0".
+ * bb_errno set 2
+ * ERR_NULL_INPUT means for input of function entered NULL pointer.
+ * bb_errno set 3
+ * ERR_SHIFT_EQUAL_OR_LESS_ZERO means you are trying to shift vec number <= 0
+ * bb_errno set 4
+ */
+
 typedef struct big_bool big_bool;
 
 /* -------------------------------------------------------------------------
@@ -21,7 +39,7 @@ typedef struct big_bool big_bool;
  * ------------------------------------------------------------------------- 
  */
 
-// /*Fuction: BB_from_file
+// /*Function: BB_from_file
 //  *returns pointer to structure type of big_bool from FILE *input_file
 //  *where the vector is written as a string
 //  *returns NULL in case of FILE * == NULL
@@ -45,7 +63,14 @@ char *string_input();
  * ------------------------------------------------------------------------- 
  */
 
-/*Fuction: BB_lenght
+/*Function: copy_vector
+ * Returns pointer to structure type of big_bool with the same components of
+ * structure.
+ * Use BB_free after using.
+ * */
+big_bool *copy_vector(big_bool *bb);
+
+/*Function: BB_lenght
  *returns lenght of bool vector: lenght(1001) --> 4
  */
 int BB_lenght(big_bool *bool_vector);
@@ -63,7 +88,7 @@ int BB_lenght(big_bool *bool_vector);
  */
 big_bool *BB_make_equal_size(big_bool *big_vec, big_bool *less_vec);
 /* -------------------------------------------------------------------------
- * Shift fuctions
+ * Shift functions
  * ------------------------------------------------------------------------- 
  * As for all shift functions if number = 0 then functions returns the same 
  * structure type of bug_bool.
@@ -111,7 +136,7 @@ big_bool *BB_cyclic_right_shift(big_bool *bb, int number);
  */
 big_bool *BB_cyclic_left_shift(big_bool *bb, int number);
 
-/*Fuction: BB_free
+/*Function: BB_free
  *free your bb->parts and bb because they are allocated
  *use it after each function where you no longer need to use your vector
  */
@@ -122,7 +147,7 @@ void BB_free(big_bool *bb);
  * ------------------------------------------------------------------------- 
  */
 
-/*Fuction BB_conjunction
+/*Function BB_conjunction
  *returns pointer to structure big_bool representing
  *conjunction of bb1 and bb2 vectors
  *
@@ -131,7 +156,7 @@ void BB_free(big_bool *bb);
  */
 big_bool *BB_conjunction(big_bool *bb1, big_bool *bb2);
 
-/*Fuction BB_xor
+/*Function BB_xor
  *returns pointer to structure big_bool representing
  *xor of bb1 and bb2 vectors
  *
@@ -140,7 +165,7 @@ big_bool *BB_conjunction(big_bool *bb1, big_bool *bb2);
  */
 big_bool *BB_xor(big_bool *bb1, big_bool *bb2);
 
-/*Fuction BB_disjunction
+/*Function BB_disjunction
  *returns pointer to structure big_bool representing
  *disjunction of bb1 and bb2 vectors
  *
@@ -149,7 +174,7 @@ big_bool *BB_xor(big_bool *bb1, big_bool *bb2);
  */
 big_bool *BB_disjunction(big_bool *bb1, big_bool *bb2);
 
-/*Fuction BB_inverting
+/*Function BB_inverting
  *returns pointer to structure big_bool representing
  *inverted bb vector
  *
