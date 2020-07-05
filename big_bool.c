@@ -4,7 +4,6 @@
 #include "big_bool.h"
 #include <stdlib.h>
 
-typedef struct big_bool big_bool;
 
 int bb_errno = ERR_OK;
 
@@ -49,31 +48,6 @@ big_bool *copy_vector(big_bool *bb){
     return twin_vector;
 }
 
-// big_bool *BB_from_file(FILE *input_file){
-//     if(!input_file)return NULL;
-
-//     big_bool vector = {(uint8_t *)calloc(1, sizeof(uint8_t)), 0, 0};
-//     char symbol;
-//     size_t new_size;
-//     while(!feof(input_file)){
-//         symbol = getc(input_file);
-//         if(symbol == '\n' || symbol == EOF)break;
-//         vector.parts[vector.last_byte] |= 
-//         (((symbol == '0')? 0 : 1) << (8 - vector.last_bit -1));
-//         vector.last_bit++;
-//         vector.last_bit = vector.last_bit % 8;
-//         if(vector.last_bit == 0){
-//             new_size = (size_t)((vector.last_byte + 1) * sizeof(uint8_t)) +2;
-//             vector.parts = (uint8_t *)realloc(vector.parts, new_size);
-//             vector.last_byte++;
-//         }
-//     }
-//     big_bool *bb = copy_vector(&vector);
-//     free(vector.parts);
-//     return bb;
-// }
-
-
 void BB_output(big_bool *bb){
     if(bb == NULL){
         bb_errno = ERR_NULL_INPUT;
@@ -104,16 +78,6 @@ int BB_lenght(big_bool *vector){
     return vector->last_byte*8 + vector->last_bit;
 }
 
-int power(int a, int b){
-    int c = 1;
-    if(b == 0 && a == 0)return 1;
-    if(b == 0)return 1;
-    if(a == 0)return 0;
-    for(int i = 0; i< b; i++){
-        c *=a;
-    }
-    return c;
-}
 big_bool *BB_right_shift(big_bool *bb, int number){
     if(bb == NULL){
         bb_errno = ERR_NULL_INPUT;
@@ -135,9 +99,9 @@ big_bool *BB_right_shift(big_bool *bb, int number){
         if(bb->last_byte - i -1 < 0){
             mask = 0;
         } else {
-        mask = ((power(2, ost) - 1) & bb->parts[bb->last_byte - i - 1]);}
+        mask = (((1 << ost) - 1) & bb->parts[bb->last_byte - i - 1]);}
         mask = (mask << (8 - (ost)));
-        mask += (((power(2, 8) - 1) & bb->parts[bb->last_byte - i]) >> ost);
+        mask |= ((((2<<8) - 1) & bb->parts[bb->last_byte - i]) >> ost);
         i++;
         vector->parts[bb->last_byte - j] = mask;
         j++;
@@ -163,15 +127,16 @@ big_bool *BB_left_shift(big_bool *bb, int number){
     int ost = number % 8;
     int i;
     big_bool *vector = copy_vector(bb);
-    for(i = 0; i <= bb->last_byte - number/8; i++){
-        int bytes = number/8 + i;
-        if(number/8 +i +1 <= bb->last_byte){
-            bytes = number/8 + i;
-            vector->parts[i] =((((power(2,8-ost))-1) & bb->parts[bytes])<< ost) +
-            ((((power(2,8) -1) << (8-ost)) & bb->parts[bytes +1]) >>(8-ost));
-        }else{vector->parts[i] =((power(2,8-ost)-1)& bb->parts[bytes])<< ost;}
+    for(i = 0; i <= bb->last_byte - number/8; i++){                                 // making two parts of mask from two bytes
+        int bytes = number/8 + i;                                                   // because in general we have number % 8 != 0
+        if(number/8 +i +1 <= bb->last_byte){                                        // This is hard to take it in mind
+            bytes = number/8 + i;                                                   // I lost 6 hours making this function and next
+            vector->parts[i] =((((1 << (8-ost))-1) & bb->parts[bytes])<< ost);      // day found a bug. I don't want to touch it
+            vector->parts[i] |= (((((1 << 8) -1) << (8-ost)) &                      // while it works.
+                    bb->parts[bytes + 1]) >>(8-ost));
+        }else{vector->parts[i] =(((1<<(8-ost))-1)& bb->parts[bytes])<< ost;}
     }
-    vector->parts[i - 1] &= ((power(2, 8) - 1) - (power(2, 8 - bb->last_bit) - 1));
+    vector->parts[i - 1] &= (((1<<8) - 1) - ((1 << (8 - bb->last_bit)) - 1));
     while(i <= bb->last_byte){
         vector->parts[i]=0;
         i++;
@@ -192,17 +157,13 @@ big_bool *BB_cyclic_right_shift(big_bool *bb, int number){
         return NULL;
     }
     number %= BB_lenght(bb);
-    big_bool *bb1 = copy_vector(bb);
-    big_bool *bb2 = copy_vector(bb); 
-    big_bool *bb3 = BB_right_shift(bb1, number);
-    BB_free(bb1);
-    big_bool *bb4 = BB_left_shift(bb2, BB_lenght(bb) - number);
-    BB_free(bb2);
+    big_bool *bb3 = BB_right_shift(bb, number);
+    big_bool *bb4 = BB_left_shift(bb, BB_lenght(bb) - number);
     for(int i = 0; i <= bb->last_byte; i++){
-        bb3->parts[i] += bb4->parts[i];
+        bb3->parts[i] |= bb4->parts[i];
     }
     BB_free(bb4);
-    return(bb3);
+    return bb3;
 }
 big_bool *BB_cyclic_left_shift(big_bool *bb, int number){
     if(bb == NULL){
@@ -217,12 +178,8 @@ big_bool *BB_cyclic_left_shift(big_bool *bb, int number){
         return NULL;
     }
     number %= BB_lenght(bb);
-    big_bool *bb1 = copy_vector(bb);
-    big_bool *bb2 = copy_vector(bb); 
-    big_bool *bb3 = BB_left_shift(bb1, number);
-    BB_free(bb1);
-    big_bool *bb4 = BB_right_shift(bb2, BB_lenght(bb) - number);
-    BB_free(bb2);
+    big_bool *bb3 = BB_left_shift(bb, number);
+    big_bool *bb4 = BB_right_shift(bb, BB_lenght(bb) - number);
     for(int i = 0; i <= bb->last_byte; i++){
         bb3->parts[i] += bb4->parts[i];
     }
@@ -315,12 +272,12 @@ big_bool *BB_xor(big_bool *bb1, big_bool *bb2){
     }
 }
 
-char *string_input(){
+char *BB_string_input(){
     char symbol = 1;
     char *string = (char *)malloc(1 * sizeof(char));
     if(string == NULL){
         bb_errno = ERR_MEM_NOT_ALLOC;
-        printf("string_input: Memory not allocated\n");
+        printf("BB_string_input: Memory not allocated\n");
         return NULL;
     }
     int i = 0;
@@ -330,7 +287,7 @@ char *string_input(){
         string = (char *)realloc(string, i * sizeof(char) + 2);
         if(string == NULL){
             bb_errno = ERR_MEM_NOT_ALLOC;
-            printf("string_input: Memory not allocated\n");
+            printf("BB_string_input: Memory not allocated\n");
             return NULL;
         }
         i++;
@@ -385,10 +342,10 @@ big_bool *BB_from_string(char *string){
     return bb;
 }
 
-char *string_from_BB(big_bool *bb){
+char *BB_to_string(big_bool *bb){
     if(bb == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("string_from_BB: You are using NULL pointer in function\n");
+        printf("BB_to_string: You are using NULL pointer in function\n");
         return NULL;
     }
 
@@ -396,7 +353,7 @@ char *string_from_BB(big_bool *bb){
     char *string = (char *)malloc(BB_lenght(bb) + 1);
     if(string == NULL){
         bb_errno = ERR_MEM_NOT_ALLOC;
-        printf("string_from_BB: Memory not allocated\n");
+        printf("BB_to_string: Memory not allocated\n");
         return NULL;
     }
     while((i != bb->last_byte) || (j != bb->last_bit)){
@@ -419,7 +376,7 @@ big_bool *BB_from_uint64_t(uint64_t number){
         printf("BB_from_uint64_t: Memory not allocated\n");
         return NULL;
     }
-    uint64_t mask = power(2, 8) - 1;
+    uint64_t mask = (2 << 8) - 1;
     int i = 1;
     while(number){
         vector.parts[vector.last_byte - i] = number & mask;

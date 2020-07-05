@@ -39,24 +39,26 @@ typedef struct big_bool big_bool;
  * ------------------------------------------------------------------------- 
  */
 
-// /*Function: BB_from_file
-//  *returns pointer to structure type of big_bool from FILE *input_file
-//  *where the vector is written as a string
-//  *returns NULL in case of FILE * == NULL
-//  *after using the vector you should to free allocated memory
-//  *look at BB_free(big_bool *bb)
-//  */
-// big_bool *BB_from_file(FILE *input_file);
 
 /*Function: BB_output
 *using to output the vector to the terminal
+ *
+ * ERRORS:
+ *
+ * bb_errno set ERR_NULL_INPUT for input of function entered NULL pointer.
+ * bb_errno set 3
 */
 void BB_output(big_bool *bb);
 
-/*Function: string_input
+/*Function: BB_string_input
  *input string from stdin
+ * ERRORS:
+ *
+ * bb_errno = ERR_WRONG_CHARS your input contains any chars besides "1" and "0".
+ * bb_errno set 2
+ *
  */
-char *string_input();
+char *BB_string_input();
 
 /* -------------------------------------------------------------------------
  * Useful functions
@@ -67,11 +69,27 @@ char *string_input();
  * Returns pointer to structure type of big_bool with the same components of
  * structure.
  * Use BB_free after using.
+ *
+ * ERRORS:
+ *
+ * bb_errno set ERR_NULL_INPUT for input of function entered NULL pointer.
+ * bb_errno set 3
+ *
+ * bb_errno ERR_MEM_NOT_ALLOC in function didn't work calloc or malloc function.
+ * bb_errno set 1
  * */
 big_bool *copy_vector(big_bool *bb);
 
 /*Function: BB_lenght
  *returns lenght of bool vector: lenght(1001) --> 4
+ *
+ * ERRORS:
+ *
+ * bb_errno set ERR_NULL_INPUT for input of function entered NULL pointer.
+ * bb_errno set 3
+ *
+ * bb_errno = ERR_MEM_NOT_ALLOC in function didn't work calloc or malloc function.
+ * bb_errno set 1
  */
 int BB_lenght(big_bool *bool_vector);
 
@@ -85,6 +103,11 @@ int BB_lenght(big_bool *bool_vector);
  *if you invert x&y you'll get in the beginning "111...11"
  *but if you try to do right part you'll get another answer
  *without making their size equal.
+ *
+ * ERRORS:
+ *
+ * bb_errno set ERR_NULL_INPUT for input of function entered NULL pointer.
+ * bb_errno set 3
  */
 big_bool *BB_make_equal_size(big_bool *big_vec, big_bool *less_vec);
 /* -------------------------------------------------------------------------
@@ -100,6 +123,17 @@ big_bool *BB_make_equal_size(big_bool *big_vec, big_bool *less_vec);
  * For gaining "growing" effect 
  * use BB_make_equal_size(big_bool *big_vec, less_vec) and then shift your 
  * vector type of big_bool.
+ *
+ * ERRORS:
+ *
+ * bb_errno set ERR_NULL_INPUT for input of function entered NULL pointer.
+ * bb_errno set 3
+ *
+ * bb_ errno = ERR_MEM_NOT_ALLOC in function didn't work calloc or malloc function.
+ * bb_errno set 1
+ *
+ * bb_errno = ERR_SHIFT_EQUAL_OR_LESS_ZERO you are trying to shift vec number <= 0
+ * bb_errno set 4
  */
 
 /*Function: BB_right_shift
@@ -123,8 +157,6 @@ big_bool *BB_left_shift(big_bool *bb, int number);
  *where the vector shifted cyclic right on number of bits
  *after using the vector you should to free allocated memory
  *look at BB_free(big_bool *bb)
- *
- * Behavior with number >= BB_lenght(bb) such a zero vector the same lenght 
  */
 big_bool *BB_cyclic_right_shift(big_bool *bb, int number);
 
@@ -139,6 +171,11 @@ big_bool *BB_cyclic_left_shift(big_bool *bb, int number);
 /*Function: BB_free
  *free your bb->parts and bb because they are allocated
  *use it after each function where you no longer need to use your vector
+ *
+ * ERRORS:
+ *
+ * bb_errno set ERR_NULL_INPUT for input of function entered NULL pointer.
+ * bb_errno set 3
  */
 void BB_free(big_bool *bb);
 
@@ -153,6 +190,11 @@ void BB_free(big_bool *bb);
  *
  *after using the vector you should to free allocated memory
  *look at BB_free(big_bool *bb)
+ *
+ * ERRORS:
+ *
+ * bb_errno set ERR_NULL_INPUT for input of function entered NULL pointer.
+ * bb_errno set 3
  */
 big_bool *BB_conjunction(big_bool *bb1, big_bool *bb2);
 
@@ -162,6 +204,11 @@ big_bool *BB_conjunction(big_bool *bb1, big_bool *bb2);
  *
  *after using the vector you should to free allocated memory
  *look at BB_free(big_bool *bb)
+ *
+ * ERRORS:
+ *
+ * bb_errno set ERR_NULL_INPUT for input of function entered NULL pointer.
+ * bb_errno set 3
  */
 big_bool *BB_xor(big_bool *bb1, big_bool *bb2);
 
@@ -171,6 +218,11 @@ big_bool *BB_xor(big_bool *bb1, big_bool *bb2);
  *
  *after using the vector you should to free allocated memory
  *look at BB_free(big_bool *bb)
+ *
+ * ERRORS:
+ *
+ * bb_errno set ERR_NULL_INPUT for input of function entered NULL pointer.
+ * bb_errno set 3
  */
 big_bool *BB_disjunction(big_bool *bb1, big_bool *bb2);
 
@@ -180,6 +232,11 @@ big_bool *BB_disjunction(big_bool *bb1, big_bool *bb2);
  *
  *after using the vector you should to free allocated memory
  *look at BB_free(big_bool *bb)
+ *
+ * ERRORS:
+ *
+ * bb_errno set ERR_NULL_INPUT for input of function entered NULL pointer.
+ * bb_errno set 3
  */
 big_bool *BB_inverting(big_bool *bb);
 
@@ -194,21 +251,36 @@ big_bool *BB_inverting(big_bool *bb);
  *
  *after using the vector you should to free allocated memory
  *look at BB_free(big_bool *bb)
+ *
+ * ERRORS:
+ *
+ * bb_errno set ERR_NULL_INPUT for input of function entered NULL pointer.
+ * bb_errno set 3
  */
 big_bool *BB_from_string(char *string);
 
-/*Function: string_from_BB
- *Returns pointer to string converted from structure type of big_bool
- *Make free(string); after using this function
- */
-char *string_from_BB(big_bool *bb);
-
-/*Function: BB_from_uint64_t
- *Returns pointer to structure type of big_bool
- *converted from uint64_t
+/* Function: BB_to_string
+ * Returns pointer to string converted from structure type of big_bool
+ * Make free(string); after using this function
  *
- *after using the vector you should to free allocated memory
- *look at BB_free(big_bool *bb)
+ * ERRORS:
+ *
+ * bb_errno set ERR_NULL_INPUT for input of function entered NULL pointer.
+ * bb_errno set 3
+ */
+char *BB_to_string(big_bool *bb);
+
+/* Function: BB_from_uint64_t
+ * Returns pointer to structure type of big_bool
+ * converted from uint64_t
+ *
+ * after using the vector you should to free allocated memory
+ * look at BB_free(big_bool *bb)
+ *
+ * ERRORS:
+ *
+ * bb_errno set ERR_NULL_INPUT for input of function entered NULL pointer.
+ * bb_errno set 3
  */
 big_bool *BB_from_uint64_t(uint64_t number);
 
