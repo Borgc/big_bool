@@ -10,7 +10,6 @@ int bb_errno = ERR_OK;
 void BB_free(big_bool *bb){
     if(bb == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_free: You are using NULL pointer in function\n");
         return;
     }
     free(bb->parts);
@@ -22,21 +21,18 @@ void BB_free(big_bool *bb){
 big_bool *copy_vector(big_bool *bb){
     if(bb == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("copy_vector: You are using NULL pointer in function\n");
         return NULL;
     }
     big_bool *twin_vector = (big_bool *)calloc(1, sizeof(big_bool));
 
     if(twin_vector == NULL){
         bb_errno = ERR_MEM_NOT_ALLOC;
-        printf("copy_vector: Memory not allocated\n");
         return NULL;
     }
     twin_vector->parts = (uint8_t *)calloc(bb->last_byte + 1, sizeof(uint8_t));
 
     if(twin_vector->parts == NULL){
         bb_errno = ERR_MEM_NOT_ALLOC;
-        printf("copy_vector: Memory not allocated\n");
         free(twin_vector);
         return NULL;
     }
@@ -51,7 +47,6 @@ big_bool *copy_vector(big_bool *bb){
 void BB_output(big_bool *bb){
     if(bb == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_output: You are using NULL pointer in function\n");
         return;
     }
     int i = 0, j = 0;
@@ -71,7 +66,6 @@ void BB_output(big_bool *bb){
 int BB_lenght(big_bool *vector){
     if(vector == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_length: You are using NULL pointer in function\n");
         return -1;
     }
     if(vector == NULL)return -1;
@@ -81,13 +75,11 @@ int BB_lenght(big_bool *vector){
 big_bool *BB_right_shift(big_bool *bb, int number){
     if(bb == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_right_shift: You are using NULL pointer in function\n");
         return NULL;
     }
 
     if(number <  0){
         bb_errno = ERR_SHIFT_EQUAL_OR_LESS_ZERO;
-        printf("BB_right_shift: number less or equal zero error\n");
         return NULL;
     }
     int i = number/8;
@@ -115,13 +107,11 @@ big_bool *BB_right_shift(big_bool *bb, int number){
 big_bool *BB_left_shift(big_bool *bb, int number){
     if(bb == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_left_shift: You are using NULL pointer in function\n");
         return NULL;
     }
 
     if(number <  0){
         bb_errno = ERR_SHIFT_EQUAL_OR_LESS_ZERO;
-        printf("BB_left_shift: number less or equal zero error\n");
         return NULL;
     }
     int ost = number % 8;
@@ -148,12 +138,10 @@ big_bool *BB_left_shift(big_bool *bb, int number){
 big_bool *BB_cyclic_right_shift(big_bool *bb, int number){
     if(bb == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_cyclic_right_shift: You are using NULL pointer in function\n");
         return NULL;
     }
     if(number <  0){
         bb_errno = ERR_SHIFT_EQUAL_OR_LESS_ZERO;
-        printf("BB_cyclic_right_shift: number less or equal zero error\n");
         return NULL;
     }
     number %= BB_lenght(bb);
@@ -168,13 +156,11 @@ big_bool *BB_cyclic_right_shift(big_bool *bb, int number){
 big_bool *BB_cyclic_left_shift(big_bool *bb, int number){
     if(bb == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_cyclic_left_shift: You are using NULL pointer in function\n");
         return NULL;
     }
 
     if(number <  0){
         bb_errno = ERR_SHIFT_EQUAL_OR_LESS_ZERO;
-        printf("BB_cyclic_left_shift: number less or equal zero error\n");
         return NULL;
     }
     number %= BB_lenght(bb);
@@ -189,7 +175,6 @@ big_bool *BB_cyclic_left_shift(big_bool *bb, int number){
 big_bool *BB_make_equal_size(big_bool *big_vec, big_bool *less_vec){
     if(big_vec == NULL || less_vec == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_make_equal_size: You are using NULL pointer in function\n");
         return NULL;
     }
 
@@ -197,7 +182,6 @@ big_bool *BB_make_equal_size(big_bool *big_vec, big_bool *less_vec){
     vector->parts = realloc(vector->parts, (big_vec->last_byte + 1)*sizeof(uint8_t));
     if(vector->parts == NULL){
         bb_errno = ERR_MEM_NOT_ALLOC;
-        printf("BB_make_equal_size: Memory not allocated\n");
         return NULL;
     }
     vector->last_byte = big_vec->last_byte;
@@ -210,66 +194,55 @@ big_bool *BB_make_equal_size(big_bool *big_vec, big_bool *less_vec){
 big_bool *BB_conjunction(big_bool *bb1, big_bool *bb2){
     if(bb1 == NULL || bb2 == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_conjunction: You are using NULL pointer in function\n");
         return NULL;
     }
 
-    if(BB_lenght(bb1) > BB_lenght(bb2)){
-        big_bool *bb = BB_make_equal_size(bb1, bb2);
-        for(int i = 0; i <= bb->last_byte; i++){
-            bb->parts[i] = bb->parts[i] & bb1->parts[i];
-        }   
-        return bb;
-    } else {
-        big_bool *bb = BB_make_equal_size(bb2, bb1);
-        for(int i = 0; i <= bb->last_byte; i++){
-            bb->parts[i] = bb->parts[i] & bb2->parts[i];
-        }
-        return bb;
+
+    if(BB_lenght(bb1) < BB_lenght(bb2)){
+        big_bool *tmp = bb1;
+        bb1 = bb2;
+        bb2 = tmp;
     }
+    big_bool *bb = BB_make_equal_size(bb1, bb2);
+    for(int i = 0; i <= bb->last_byte; i++){
+        bb->parts[i] = bb->parts[i] & bb1->parts[i];
+    }
+    return bb;
 }
 
 big_bool *BB_disjunction(big_bool *bb1, big_bool *bb2){
     if(bb1 == NULL || bb2 == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_disjunction: You are using NULL pointer in function\n");
         return NULL;
     }
 
-    if(BB_lenght(bb1) > BB_lenght(bb2)){
-        big_bool *bb = BB_make_equal_size(bb1, bb2);
-        for(int i = 0; i <= bb->last_byte; i++){
-            bb->parts[i] = bb->parts[i] | bb1->parts[i];
-        }   
-        return bb;
-    } else {
-        big_bool *bb = BB_make_equal_size(bb2, bb1);
-        for(int i = 0; i <= bb->last_byte; i++){
-            bb->parts[i] = bb->parts[i] | bb2->parts[i];
-        }
-        return bb;
+    if(BB_lenght(bb1) < BB_lenght(bb2)){
+        big_bool *tmp = bb1;
+        bb1 = bb2;
+        bb2 = tmp;
     }
+    big_bool *bb = BB_make_equal_size(bb1, bb2);
+    for(int i = 0; i <= bb->last_byte; i++){
+        bb->parts[i] = bb->parts[i] | bb1->parts[i];
+    }
+    return bb;
 }
 big_bool *BB_xor(big_bool *bb1, big_bool *bb2){
     if(bb1 == NULL || bb2 == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_xor: You are using NULL pointer in function\n");
         return NULL;
     }
 
-    if(BB_lenght(bb1) > BB_lenght(bb2)){
-        big_bool *bb = BB_make_equal_size(bb1, bb2);
-        for(int i = 0; i <= bb->last_byte; i++){
-            bb->parts[i] = bb->parts[i] ^ bb1->parts[i];
-        }   
-        return bb;
-    } else {
-        big_bool *bb = BB_make_equal_size(bb2, bb1);
-        for(int i = 0; i <= bb->last_byte; i++){
-            bb->parts[i] = bb->parts[i] ^ bb2->parts[i];
-        }
-        return bb;
+    if(BB_lenght(bb1) < BB_lenght(bb2)){
+        big_bool *tmp = bb1;
+        bb1 = bb2;
+        bb2 = tmp;
     }
+    big_bool *bb = BB_make_equal_size(bb1, bb2);
+    for(int i = 0; i <= bb->last_byte; i++){
+        bb->parts[i] = bb->parts[i] ^ bb1->parts[i];
+    }
+    return bb;
 }
 
 char *BB_string_input(){
@@ -277,7 +250,6 @@ char *BB_string_input(){
     char *string = (char *)malloc(1 * sizeof(char));
     if(string == NULL){
         bb_errno = ERR_MEM_NOT_ALLOC;
-        printf("BB_string_input: Memory not allocated\n");
         return NULL;
     }
     int i = 0;
@@ -287,7 +259,6 @@ char *BB_string_input(){
         string = (char *)realloc(string, i * sizeof(char) + 2);
         if(string == NULL){
             bb_errno = ERR_MEM_NOT_ALLOC;
-            printf("BB_string_input: Memory not allocated\n");
             return NULL;
         }
         i++;
@@ -299,15 +270,13 @@ char *BB_string_input(){
 big_bool *BB_from_string(char *string){
     if(string == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_from_string: You are using NULL pointer in function\n");
         return NULL;
     }
 
     if(strlen(string) < 1)return NULL;
-    big_bool vector = {(uint8_t *)calloc(1, sizeof(uint8_t)), 0, 0};
+    big_bool vector = {(uint8_t *)calloc(strlen(string), sizeof(uint8_t)), 0, 0};
     if(vector.parts == NULL){
         bb_errno = ERR_MEM_NOT_ALLOC;
-        printf("BB_from_string: Memory not allocated\n");
         return NULL;
     }
     char symbol;
@@ -318,20 +287,12 @@ big_bool *BB_from_string(char *string){
         if((symbol != '1') && (symbol != '0')){
             bb_errno = ERR_WRONG_CHARS;
             free(vector.parts);
-            printf("BB_from_string: wrong chars, use 1 or 0\n");
             return NULL;
         }
         vector.parts[vector.last_byte] |= (((symbol == '0')? 0 : 1) << (8 - vector.last_bit -1));
         vector.last_bit++;
         vector.last_bit = vector.last_bit % 8;
         if(vector.last_bit == 0){
-            new_size = (size_t)((vector.last_byte + 2) * sizeof(uint8_t)); //+2;
-            vector.parts = (uint8_t *)realloc(vector.parts, new_size);
-            if(vector.parts == NULL){
-                bb_errno = ERR_MEM_NOT_ALLOC;
-                printf("BB_from_string: Memory not allocated\n");
-                return NULL;
-            }
             vector.last_byte++;
         }
         i++;
@@ -345,7 +306,6 @@ big_bool *BB_from_string(char *string){
 char *BB_to_string(big_bool *bb){
     if(bb == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_to_string: You are using NULL pointer in function\n");
         return NULL;
     }
 
@@ -353,7 +313,6 @@ char *BB_to_string(big_bool *bb){
     char *string = (char *)malloc(BB_lenght(bb) + 1);
     if(string == NULL){
         bb_errno = ERR_MEM_NOT_ALLOC;
-        printf("BB_to_string: Memory not allocated\n");
         return NULL;
     }
     while((i != bb->last_byte) || (j != bb->last_bit)){
@@ -373,7 +332,6 @@ big_bool *BB_from_uint64_t(uint64_t number){
     big_bool vector = {(uint8_t *)calloc(9, sizeof(uint8_t)), 0, 8};
     if(vector.parts == NULL){
         bb_errno = ERR_MEM_NOT_ALLOC;
-        printf("BB_from_uint64_t: Memory not allocated\n");
         return NULL;
     }
     uint64_t mask = (2 << 8) - 1;
@@ -391,7 +349,6 @@ big_bool *BB_from_uint64_t(uint64_t number){
 big_bool *BB_inverting(big_bool *bb){
     if(bb == NULL){
         bb_errno = ERR_NULL_INPUT;
-        printf("BB_inverting: You are using NULL pointer in function\n");
         return NULL;
     }
 
